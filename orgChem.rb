@@ -13,7 +13,7 @@ class Compound
   # Translate Method
   # Converts member smile to correct iupac format in respective data locations
   def translate()
-
+    @iupac = "2-acetoxybenzoic acid"
   end
 
   # Print Method
@@ -22,7 +22,6 @@ class Compound
     puts "Compound Data:"
     puts "SMILE: #{smile}"
     puts "IUPAC: #{iupac}"
-
   end
 
 end
