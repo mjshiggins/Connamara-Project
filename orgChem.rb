@@ -19,9 +19,8 @@ class Compound
   attr_accessor :smile
   attr_accessor :iupac
 
-
   # Create the Compound Object
-  def initialize(smile = "[O=C(Oc1ccccc1C(=O)O)C]", iupac = "Not Yet Computed") # Set defaults (2-acetoxybenzoic acid)
+  def initialize(smile, iupac = "Not Yet Computed") # Set defaults (2-acetoxybenzoic acid)
     @smile = smile
     @iupac = iupac
   end
@@ -43,8 +42,9 @@ class Compound
 end
 
 if __FILE__ == $0
-  m = Stanley.new
-  m.print()
+  #m = Stanley.new
+  #m.print()
+
   # Create object and input SMILE name (testing parameters already input)
   cmp = Compound.new
   # Actual Input
