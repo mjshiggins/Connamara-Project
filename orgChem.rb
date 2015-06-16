@@ -20,7 +20,7 @@ class Compound
   attr_accessor :iupac
 
   # Create the Compound Object
-  def initialize(smile, iupac = "Not Yet Computed") # Set defaults (2-acetoxybenzoic acid)
+  def initialize(smile = " ", iupac = "Not Yet Computed") # Set defaults (2-acetoxybenzoic acid)
     @smile = smile
     @iupac = iupac
   end
