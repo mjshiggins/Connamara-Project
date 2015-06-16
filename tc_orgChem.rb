@@ -11,7 +11,7 @@ class TestCompound < Test::Unit::TestCase
 
   def test_CompoundTranslation
   	testCompound = Compound.new("[O=C(Oc1ccccc1C(=O)O)C]")
-    assert_equal("2-acetoxybenzoic acid", testCompound.iupac)
+  	assert_equal("2-acetoxybenzoic acid", testCompound.iupac)
 
   end
  
