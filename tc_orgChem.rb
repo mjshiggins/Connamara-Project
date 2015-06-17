@@ -13,7 +13,7 @@ class TestCompound < Test::Unit::TestCase
   end
 
   def test_CompoundTranslation
-  	assert_equal(10,(Compound.new("[CC(C)CC]","" )).getCarbonCount)
+  	assert_equal("2,5-dimethyloctane",(Compound.new("CC(C)CCC(CCC)C","" )).iupac)
   end
  
 end

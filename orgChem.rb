@@ -7,7 +7,7 @@
 #### Functionality: Translates straight chained and branched alkanes from SMILES to IUPAC nomenclature
 #### Alkanes: Substances consisting entirely of single-bonded carbon and hydrogen atoms and lacking functional groups
 #### Branched Alkanes: Derived from the straight-chain alkanes system by removing one of the hydrogen atoms from a methylene group
-#### Use: Run via command line using "ruby orgChem.rb ARGUMENT"
+#### Use: Run via command line using --> ruby orgChem.rb "compound"
 ##################################################
 
 
@@ -105,11 +105,11 @@ end
 ##################################################
 #### Function: prefixBuilder
 #### Description: Concatenates all prefixes into the proper IUPAC format
-#### Dependencies: prefixer() and carbonCount
+#### Dependencies: prefixer(), carbonCount, and "branched" bool
 #### Returns: Concatenated, IUPAC name (string)
 ##################################################
 
-def prefixBuilder(carbonVal)
+def prefixBuilder(carbonVal, branched)
   # Initializations
   temp = ""
   x = carbonVal
@@ -120,24 +120,25 @@ def prefixBuilder(carbonVal)
   if carbonVal < 10
     case carbonVal
     when 9
-      temp.concat("nonane")
+      temp.concat("non")
     when 8
-      temp.concat("octane")
+      temp.concat("oct")
     when 7
-      temp.concat("heptane")
+      temp.concat("hept")
     when 6
-      temp.concat("hexane")
+      temp.concat("hex")
     when 5
-      temp.concat("pentane")
+      temp.concat("pent")
     when 4
-      temp.concat("butane")
+      temp.concat("but")
     when 3
-      temp.concat("propane")
+      temp.concat("prop")
     when 2
-      temp.concat("ethane")
+      temp.concat("eth")
     when 1
-      temp.concat("methane")
+      temp.concat("meth")
     end
+
 
   # Begin standard prefixing procedure by parsing each digit of the carbon count
   elsif carbonVal >= 10 
@@ -147,11 +148,17 @@ def prefixBuilder(carbonVal)
       temp.concat(prefixer(y, counter))
       counter = counter + 1
     end
-
-    # Add final suffix
-    # Denpends on CnH2n+2 (ane) for alkanes or CnH2n+1 (yl) alkyl groups
-    temp.concat("ne")
   end
+
+  # Set final suffix for alkane or branch
+  # Denpends on CnH2n+2 (ane) for alkanes or CnH2n+1 (yl) alkyl groups
+  if !branched
+    temp.concat("ane")
+  else
+    temp.concat("yl")
+  end
+
+  # Return Final Prefix
   return temp
 end
 
@@ -184,18 +191,15 @@ class Compound
   attr_accessor :hydrogenCount
 
   # Create the Compound Object
-  def initialize(smile = "CCCCCCCCCCCCCCCCCCCCCCCC", iupac = "")
+  def initialize(smile = "", iupac = "")
     @smile = smile
     @iupac = iupac
-
-    # Initialize Carbon and Hydrogen Counts
-    carbonCount = smile.count("C")
-    hydrogenCount = smile.count("H")
   end
 
   # Check for valdiity of straight chained or branched alkanes, reject other compounds
   # Must follow C(n)H(2n+2) format
   # Returns true if valid
+  # DEPRECATED
   def alkaneCheck()
     if carbonCount == ((hydrogenCount*2)+2)
       return true
@@ -207,14 +211,22 @@ class Compound
   # Translate Method
   # Converts member smile to correct iupac format in respective data locations
   def translate()
-    @carbonCount = 0
+    # Initialize Carbon and Hydrogen Counts
+    @carbonCount = smile.count("C")
 
     # Count the carbons for prefix
-    puts smile.length
-    iupac.concat(prefixBuilder(carbonCount))
+    # DEPRECATED
+    #puts carbonCount
+    iupac.concat(prefixBuilder(carbonCount,false))
 
 
     # Check for parantheses (Branched)
+
+  end
+
+  # Cleaner Method: Removes all "vowel" based naming issues
+  # Examples: aa (decaane), ia (triaconta), heni/hene, icosa (drop 'i' when proceeded by vowel)
+  def cleaner()
 
   end
 
@@ -242,18 +254,16 @@ if __FILE__ == $0
   #m.print()
 
   # Create object and input SMILE name (testing parameters already input)
-  cmp = Compound.new
-  # Actual Input
-  # cmp.iupac = "2-acetoxybenzoic acid"
+  cmp = Compound.new(ARGV[0],"")
+
 
   # Check validity of compound, Translate and Output
-  if cmp.alkaneCheck
+  #if cmp.alkaneCheck
+  if true
     cmp.translate()
     cmp.print()  
   else
     puts "Compound is not a straight-chained or branched alkane"
   end
-
-    
 
 end
