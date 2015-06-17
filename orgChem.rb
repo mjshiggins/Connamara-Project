@@ -6,6 +6,7 @@
 #### mac@nevada.unr.edu
 #### Functionality: Translates straight chained and branched alkanes from SMILES to IUPAC nomenclature
 #### Alkanes: Substances consisting entirely of single-bonded carbon and hydrogen atoms and lacking functional groups
+#### Branched Alkanes: Derived from the straight-chain alkanes system by removing one of the hydrogen atoms from a methylene group
 #### Use: Run via command line using "ruby orgChem.rb ARGUMENT"
 ##################################################
 
@@ -180,12 +181,28 @@ class Compound
   attr_accessor :smile
   attr_accessor :iupac
   attr_accessor :carbonCount
+  attr_accessor :hydrogenCount
 
   # Create the Compound Object
   def initialize(smile = "CCCCCCCCCCCCCCCCCCCCCCCC", iupac = "")
     @smile = smile
     @iupac = iupac
+
+    # Initialize Carbon and Hydrogen Counts
+    carbonCount = smile.count("C")
+    hydrogenCount = smile.count("H")
   end
+
+  # Check for valdiity of straight chained or branched alkanes, reject other compounds
+  # Must follow C(n)H(2n+2) format
+  # Returns true if valid
+  def alkaneCheck()
+    if carbonCount == ((hydrogenCount*2)+2)
+      return true
+    end
+    return false
+  end
+
 
   # Translate Method
   # Converts member smile to correct iupac format in respective data locations
@@ -194,7 +211,6 @@ class Compound
 
     # Count the carbons for prefix
     puts smile.length
-    carbonCount = smile.count("C")
     iupac.concat(prefixBuilder(carbonCount))
 
 
@@ -230,7 +246,14 @@ if __FILE__ == $0
   # Actual Input
   # cmp.iupac = "2-acetoxybenzoic acid"
 
-  # Translate and Output
-  cmp.translate()
-  cmp.print()
+  # Check validity of compound, Translate and Output
+  if cmp.alkaneCheck
+    cmp.translate()
+    cmp.print()  
+  else
+    puts "Compound is not a straight-chained or branched alkane"
+  end
+
+    
+
 end
