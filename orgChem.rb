@@ -187,12 +187,14 @@ end
 #### Vertex: 
 ##################################################
 class Node
-  attr_accessor :node, :next
+  attr_accessor :node, :next, :explore
 
   def initialize(node)
+    # Node name will be used as storage of counter for carbon-chain checking
     @node = node
     # Create pointer array, scales on demand
     @next = {}
+    @explore = {}
   end
 end
 
@@ -202,15 +204,16 @@ end
 #### Vertex: 
 ##################################################
 class Graph
-  attr_accessor :head, :tail, :iterator, :branch, :iupac
+  attr_accessor :head, :tail, :iterator, :branch, :iupac, :firstRun
 
     def initialize()
         #@vertices = {}
         @head = nil
         @tail = nil
         @iterator = nil
-        @branch = {}
+        @return = {}
         @iupac = ""
+        @firstRun = true
 
     end
   
@@ -225,7 +228,7 @@ class Graph
       # Prime loop with first carbon, assign @head
       # Loop until end of string, uses a simulated stack to store branches in order
         # If branch is found "(", push branch return pointer and continue
-        # If end of branch is found ")", return to "popped" branch pointer
+        # If end of branch is found ")", return to "popped" branch return pointer
         # If simply another carbon, just add the new vertex to the parent node
         # If end of string
       #
@@ -234,20 +237,40 @@ class Graph
     # Finds the longest chain from any given carbon molecule
     def findLength(vertex)
       # Initializations (counter to zero, clear the branch array)
+      
       # Loop until max depth found, uses a simulated stack to store branches in order
-        # If no children pointers are found, do max test/update and return to "popped" branch pointer
-          # If branch array is nil, return counter
-        # If multiple pointers to children are found, push to the branch array 
+        # If no children pointers are found
+          # Do max test/update
+
+          # While flag
+          # If pop return != nil
+            # If pop explore != nil
+              # Push branch back onto stack
+              # Set iterator to explore
+              # Flag
+          # Else if pop return == nil
+            # return max value
+
+        # If multiple pointers to children are found
+          # Push node to the branch return array
+          # Check for a populated explore stack on node
+            # If explore stack empty, populate with all branches
+          # Set iterator to pop explore
+
         # If only one child, iterate and update counter
     end
 
     # Recursively called in order to build IUPAC string
+    # Returns fully concatenated build string
     def buildString(vertex)
+      # Initializations
+      base = ""
+
+      # Prime loop with base structure by checking first run and then flipping bool (firstRun)
+
+      # Find length
     end
 
-    # Potentially unneccesary
-    def markBranches()
-    end
     
     def to_s
         return @vertices.inspect
