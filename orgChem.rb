@@ -180,6 +180,80 @@ class StanleyCup
   end
 end
 
+
+##################################################
+#### Class: Node
+#### Description: Node (carbon) for use in DAG structure
+#### Vertex: 
+##################################################
+class Node
+  attr_accessor :node, :next
+
+  def initialize(node)
+    @node = node
+    # Create pointer array, scales on demand
+    @next = {}
+  end
+end
+
+##################################################
+#### Class: Graph
+#### Description: DAG for representing the structure of compounds
+#### Vertex: 
+##################################################
+class Graph
+  attr_accessor :head, :tail, :iterator, :branch, :iupac
+
+    def initialize()
+        #@vertices = {}
+        @head = nil
+        @tail = nil
+        @iterator = nil
+        @branch = {}
+        @iupac = ""
+
+    end
+  
+    # Adds vertex (carbon) to next available pointer in parameter (parent) node
+    def add_vertex(parentNode)
+      temp = Node.new
+      parentNode.next.push(temp)
+    end
+
+    # Builds the entire graph from the SMILE string
+    def buildGraph(smile)
+      # Prime loop with first carbon, assign @head
+      # Loop until end of string, uses a simulated stack to store branches in order
+        # If branch is found "(", push branch return pointer and continue
+        # If end of branch is found ")", return to "popped" branch pointer
+        # If simply another carbon, just add the new vertex to the parent node
+        # If end of string
+      #
+    end
+
+    # Finds the longest chain from any given carbon molecule
+    def findLength(vertex)
+      # Initializations (counter to zero, clear the branch array)
+      # Loop until max depth found, uses a simulated stack to store branches in order
+        # If no children pointers are found, do max test/update and return to "popped" branch pointer
+          # If branch array is nil, return counter
+        # If multiple pointers to children are found, push to the branch array 
+        # If only one child, iterate and update counter
+    end
+
+    # Recursively called in order to build IUPAC string
+    def buildString(vertex)
+    end
+
+    # Potentially unneccesary
+    def markBranches()
+    end
+    
+    def to_s
+        return @vertices.inspect
+    end
+end
+
 ##################################################
 #### Class: Compound
 #### Description: Data Structure for inputted compounds
@@ -195,6 +269,7 @@ class Compound
     @smile = smile
     @iupac = iupac
   end
+
 
   # Check for valdiity of straight chained or branched alkanes, reject other compounds
   # Must follow C(n)H(2n+2) format
@@ -226,6 +301,8 @@ class Compound
 
   # Cleaner Method: Removes all "vowel" based naming issues
   # Examples: aa (decaane), ia (triaconta), heni/hene, icosa (drop 'i' when proceeded by vowel)
+  # General Rule: Drop second vowel
+  # Works on IUPAC member
   def cleaner()
 
   end
@@ -261,6 +338,7 @@ if __FILE__ == $0
   #if cmp.alkaneCheck
   if true
     cmp.translate()
+    cmp.cleaner()
     cmp.print()  
   else
     puts "Compound is not a straight-chained or branched alkane"
