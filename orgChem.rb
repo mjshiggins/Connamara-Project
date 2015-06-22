@@ -187,12 +187,16 @@ end
 #### Vertex: 
 ##################################################
 class Node
-  attr_accessor :node, :next, :explore
+  attr_accessor :node, :next, :explore, :branches, :carbonLen
 
   def initialize(node)
-    # Node name will be used as storage of counter for carbon-chain checking
+    # Node name will be used as locant numbering
     @node = node
-    # Create pointer array, scales on demand
+    # Branches is a bool that indicates whether or not the substituent has sub-branches
+    @branches = false
+    # CarbonLen is only populated for nodes that start a new or substituent chain, and indicates base (longest) length
+    @carbonLen = -1
+    # Create pointer hashes, scales on demand
     @next = {}
     @explore = {}
   end
@@ -200,7 +204,7 @@ end
 
 ##################################################
 #### Class: Graph
-#### Description: DAG for representing the structure of compounds
+#### Description: Directed Graph for representing the structure of compounds
 #### Vertex: 
 ##################################################
 class Graph
@@ -237,7 +241,7 @@ class Graph
     # Finds the longest chain from any given carbon molecule
     def findLength(vertex)
       # Initializations (counter to zero, clear the branch array)
-      
+
       # Loop until max depth found, uses a simulated stack to store branches in order
         # If no children pointers are found
           # Do max test/update
@@ -258,6 +262,12 @@ class Graph
           # Set iterator to pop explore
 
         # If only one child, iterate and update counter
+    end
+
+    # Determines correct numbering scheme for compound, populates number values, carbonLen, and branches
+    def numberCompound(vertex)
+
+
     end
 
     # Recursively called in order to build IUPAC string
