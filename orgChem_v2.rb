@@ -199,7 +199,7 @@ class Node
     @previous = nil
     # "Pointer" arrays. @next will generally only have one member after the graph has been refactored by refactorGraph
     @next = []
-    @explore = []
+    @branchArray = []
     # exploreArray is a stack for temporarily holding unexplored child nodes, potentially unneeded
     @exploreArray= []
   end
@@ -257,6 +257,73 @@ class Graph
     @carbonCount = 0
   end
 
+  ##################################################
+  # Name: findTail
+  # Functionality:  Returns tail of longest carbon chain from vertex
+  # Pre: Only usable when all child nodes are still copied in exploreArray
+  #       
+  # Post: Should only be used immediately prior to renumbering branches
+  ################################################## 
+  def findTail(vertex)
+    # Initializations
+    counter = 1
+    max = 0
+    tail = nil
+    iterator = vertex
+    branchArr = []
+
+    # Search
+    while iterator != nil
+      # Multiple children
+      if(iterator.exploreArray.size > 1)
+        # Save branch location
+        branchArr.push(iterator)
+        # Pop from exploreArray and increment iterator, do a max test, set tail
+        iterator = exploreArray.pop
+        counter += 1
+        iterator.locant = counter
+        if counter > max
+          max = counter
+          tail = iterator
+        end
+
+      # One child
+      elsif (iterator.exploreArray.size == 1)
+        iterator = exploreArray.pop
+        counter += 1
+        iterator.locant = counter
+        if counter > max
+          max = counter
+          tail = iterator
+        end
+      
+      # No child
+      elsif (iterator.exploreArray.size == 0)
+        # Send back to last branch
+        if branchArr.size != nil
+          # Set iterator to pop
+          iterator = branchArr.pop
+          # Reset counter
+          counter = iterator.locant
+          # Check exploreArray
+          if iterator.exploreArray.size > 0
+            iterator = exploreArray.pop
+            counter += 1
+            iterator.locant = counter
+            if counter > max
+              max = counter
+              tail = iterator
+            end
+          end
+
+        # No more branches, return tail
+        else
+          return tail
+        end
+      end 
+    end
+  
+  end
  
   ##################################################
   # Name: addVertex
@@ -271,13 +338,14 @@ class Graph
     if parentNode.locant != nil
       temp.previous = (parentNode)
       temp.locant = ((parentNode.locant) + 1)
-      #puts temp.locant
       # Max test
       if temp.locant > @maxLength
         @maxLength = temp.locant
         @tail = temp
       end
       parentNode.next.push(temp)
+      # Populate secondary search array
+      parentNode.exploreArray.push(temp)
     # If first node being added to graph
     elsif parentNode.locant == nil
       @head = temp      
@@ -290,10 +358,53 @@ class Graph
   end
 
   ##################################################
+  # Name: refactorGraph
+  # Functionality:  Finds longest chain, renumbers all locants, tests for branches and sets bool for head
+  #                 Rebuilds node child branches, runs refactorGraph recursively on each child branch, populates length
+  # Pre: DAG w/all children in node.next, head vertex is part of longest chain due to SMILES formulation
+  #      To run properly, call with @head and @tail
+  # Post: Fully numbered and rebuilt nodes, graph is complete
+  ##################################################
+  def refactorGraph(head, tail)
+    # Initializations
+    branchFlag = false
+    iterator = tail
+
+    # Move backwards from tail to head while: 
+    while iterator != head
+      # Checking for branches
+      if iterator.next.size > 1
+        branchFlag = true
+      end
+      # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
+      iterator.previous.locant = (iterator.locant - 1) 
+      # Rebuilding child branch directories (not yet possible, unless they are already renumbered.....)
+      #iterator.rebuild
+      # Populating length
+      # Recursively calling refactorGraph on each child branch
+      # Decrementing the iterator
+      iterator = iterator.previous      
+    end
+    # Set branches for dynamic programming later (Does this node have any branches on its main carbon chain?)
+    head.branches = branchFlag
+
+
+  end
+
+  ##################################################
+  # Name: 
+  # Functionality:
+  # Pre:
+  # Post:
+  ##################################################
+  def reverseGraph()
+  end
+
+  ##################################################
   # Name: buildGraph
   # Functionality: Builds graph from SMILES string
   # Pre: SMILES string formatted as "CCC(C)C"
-  # Post: Directed Graph with all child nodes located in node.next, node.branches has not yet been populated
+  # Post: Fully populated and properly numbered graph
   ##################################################
   def buildGraph(smile)
     branchArr = []
@@ -318,25 +429,13 @@ class Graph
             iterator = temp
         end
       end
+
+      # Refactor and Reverse (if needed)
+      refactorGraph(@head, @tail)
+      reverseGraph()
   end
 
-  ##################################################
-  # Name: 
-  # Functionality:
-  # Pre:
-  # Post:
-  ##################################################
-  def refactorGraph()
-  end
 
-  ##################################################
-  # Name: 
-  # Functionality:
-  # Pre:
-  # Post:
-  ##################################################
-  def reverseGraph()
-  end
 
   ##################################################
   # Name: 

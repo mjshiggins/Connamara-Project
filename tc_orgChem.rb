@@ -20,6 +20,12 @@ class TestCompound < Test::Unit::TestCase
   	assert_equal(8, compoundGraph.maxLength)
   end
 
+    def test_findTail
+  	compoundGraph = Graph.new
+  	compoundGraph.buildGraph("CC(C)CCCC(CC)C")
+  	assert_equal(8, (compoundGraph.findTail(compoundGraph.head)).locant)
+  end
+
   def test_CompoundTranslation0
   	assert_equal("methane", (Compound.new("C","" )).iupac)
   end
