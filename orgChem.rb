@@ -330,26 +330,22 @@ class Graph
           branchFlag = true
 
         # If multiple pointers to children are found
-        elsif ( !tailBool && @iterator.next.length > 1)
+        elsif ( @iterator.next.length > 1 || @iterator.explore.length > 0)
           # Push node to the branch return array
           branchArr.push(@iterator)
-          # Check for a populated explore stack on node
+          # Check for a populated explore stack on node, first run
           if (@iterator.explore.length == 0)
             # If explore stack empty, populate explore and explore2 with all branches
             @iterator.next.each {|x| @iterator.explore2.push(x)}
             @iterator.next.each {|x| @iterator.explore.push(x)}
             @iterator.rebuild()
           end
-          # Set iterator to pop explore
-          @iterator = @iterator.explore2.pop
-          counter += 1
-          @iterator.node = counter
-
-        # If multiple pointers to children are found on subsequent runs
-        elsif ( tailBool && @iterator.explore.length > 1)
-          # Push node to the branch return array
-          branchArr.push(@iterator)
-
+          # Check for a populated explore2 stack on node, subsequent runs
+          if (@iterator.explore2.length == 0)
+            # If explore stack empty, populate explore and explore2 with all branches
+            @iterator.explore.each {|x| @iterator.explore2.push(x)}
+            @iterator.rebuild()
+          end
           # Set iterator to pop explore
           @iterator = @iterator.explore2.pop
           counter += 1
@@ -365,23 +361,18 @@ class Graph
       end
     end
 
-    # Renumbers main carbon chain and rebuilds main/child nodes
-    # DEPRECATED
-    def number(tail)
-      tail.node = @baseCount
-      while(tail.previous != nil)
-        tail.rebuild()
-        tail.previous.node = (tail.node-1)
+    # Checks for branches
+    def branchCheck(head, tail)
+      while(tail != head)
+        if(tail.explore.length > 0)
+          return true
+        end
         tail = tail.previous
-      end
-
-      if tail.node = 1
-        return true
       end
       return false
     end
 
-    # Renumbers all branches (recursively) with correct locants
+    # Renumbers all branches (recursively) with correct locants, enables dynamic programming
     def renumber(head)
       # Find length from head, assigning proper locants
       head.carbonLen = findLength(head, false)
@@ -448,8 +439,13 @@ class Graph
     def buildString(vertex)
       # Initializations
       base = ""
+      @iterator = vertex
+      length = @iterator.carbonLen
 
       # Prime loop with base structure by checking first run and then flipping bool (firstRun)
+      if (@iterator.explore.length > 0)
+        @iterator.explore.each {|x| @iterator.explore2.push(x)}
+      end
 
       # Find length
     end
