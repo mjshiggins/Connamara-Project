@@ -221,15 +221,29 @@ class Node
       end
     end
     @next.push(tempArr.pop)
-    # Clean main carbon chains from branch array
-    while (@branchArray.length > 1)
-      temp = @branchArray.pop
-      if (temp.locant == 1)
-        @branchArray.push(temp)
-      end
-    end
   end
 
+  ##################################################
+  # Name: clearCopy
+  # Functionality: Clears exploreArray, copies in child array
+  # Pre:
+  # Post: 
+  ##################################################
+  def clearCopy()
+    # Erase and Prime exploreArray by copying next and branchArray into exploreArray
+    while @exploreArray.size > 0
+      @exploreArray.pop
+    end
+    # Next Array
+    for index in 0 ... @next.length
+      @exploreArray.push(@next[index])
+    end
+    # Branch Array
+    for index in 0 ... @branchArray.length
+      @exploreArray.push(branchArray[index])
+    end
+    # Delete duplicates
+  end
 
 end
 
@@ -273,7 +287,9 @@ class Graph
     iterator = vertex
     branchArr = []
 
-    # Prime exploreArray by copying next into exploreArray
+    # Prime exploreArray
+    iterator.clearCopy
+    
 
     # Search
     while iterator != nil
@@ -283,8 +299,11 @@ class Graph
         branchArr.push(iterator)
         # Pop from exploreArray and increment iterator, do a max test, set tail
         iterator = iterator.exploreArray.pop
+        # Prime exploreArray
+        iterator.clearCopy
         counter += 1
         iterator.locant = counter
+
         if counter > max
           max = counter
           tail = iterator
@@ -293,6 +312,8 @@ class Graph
       # One child
       elsif (iterator.exploreArray.size == 1)
         iterator = iterator.exploreArray.pop
+        # Prime exploreArray
+        iterator.clearCopy
         counter += 1
         iterator.locant = counter
         if counter > max
@@ -378,18 +399,18 @@ class Graph
       # Checking for branches
       if iterator.next.size > 1
         branchFlag = true
-        for index in 0 ... iterator.next.length
+        for index in 0 ... ((iterator.next.length)-1)
           # Rebuilding child branch directories
           iterator.next[index].rebuild
         end
         # Recursively calling refactorGraph on each child branch
-        for index in 0 ... iterator.branchArray.length
+        for index in 0 ... ((iterator.branchArray.length)-1)
           refactorGraph(iterator.branchArray[index])
         end
       end
 
       # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
-      #iterator.previous.locant = (iterator.locant - 1) 
+      iterator.previous.locant = (iterator.locant - 1) 
       
       # Decrementing the iterator
       iterator = iterator.previous      
@@ -477,17 +498,21 @@ class Graph
         base.concat(prefixBuilder(length, false))
       end
 
+
         while iterator.next[0] != nil
+          #puts iterator.next[0].locant
           # If carbon has branches
           if iterator.branchArray.length > 0
             # For every branch
-            for index in 0 ... iterator.branchArray.length
+            for index in 0 ... ((iterator.branchArray.length))
               # If the branch has a branch, recursively call this function
+              puts index
               if ((iterator.branchArray[index]).branches)
                 carbonHash[buildString(iterator.branchArray[index])] = [(iterator.branchArray[index]).locant]
               # Otherwise, create a hash using the prefix
               else
-                carbonHash[prefixBuilder(findTail(iterator.branchArray[index]).locant, true)] = [(iterator.branchArray[index]).locant]
+                puts prefixBuilder((findTail(iterator.branchArray[index]).locant, true)))
+                carbonHash[prefixBuilder((findTail(iterator.branchArray[index])).locant, true)] = [(iterator.branchArray[index]).locant]
               end
             end
           # No branches
@@ -501,6 +526,8 @@ class Graph
 
       # Concatenate Final String
       carbonHash.each_key {|key| puts key }
+
+      return base
 
   end
 
@@ -532,7 +559,7 @@ class Compound
   def translate()
     compoundGraph = Graph.new
     compoundGraph.buildGraph(@smile)
-    iupac = compoundGraph.buildString(compoundGraph.head)
+    iupac.concat(compoundGraph.buildString(compoundGraph.head))
   end
 
 
