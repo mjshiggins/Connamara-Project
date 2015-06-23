@@ -279,7 +279,7 @@ class Graph
         # Save branch location
         branchArr.push(iterator)
         # Pop from exploreArray and increment iterator, do a max test, set tail
-        iterator = exploreArray.pop
+        iterator = iterator.exploreArray.pop
         counter += 1
         iterator.locant = counter
         if counter > max
@@ -289,7 +289,7 @@ class Graph
 
       # One child
       elsif (iterator.exploreArray.size == 1)
-        iterator = exploreArray.pop
+        iterator = iterator.exploreArray.pop
         counter += 1
         iterator.locant = counter
         if counter > max
@@ -300,14 +300,14 @@ class Graph
       # No child
       elsif (iterator.exploreArray.size == 0)
         # Send back to last branch
-        if branchArr.size != nil
+        if branchArr.size != 0
           # Set iterator to pop
           iterator = branchArr.pop
           # Reset counter
           counter = iterator.locant
           # Check exploreArray
           if iterator.exploreArray.size > 0
-            iterator = exploreArray.pop
+            iterator = iterator.exploreArray.pop
             counter += 1
             iterator.locant = counter
             if counter > max
