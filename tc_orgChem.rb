@@ -9,18 +9,15 @@ class TestCompound < Test::Unit::TestCase
   end
 
   def test_CompoundCarbonCount
-  	temp = (Compound.new("CC(C)CCCC(CC)C",""))
   	compoundGraph = Graph.new
-  	compoundGraph.buildGraph(temp.smile)
+  	compoundGraph.buildGraph("CC(C)CCCC(CC)C")
   	assert_equal(10, compoundGraph.carbonCount)
   end
 
   def test_CompoundCarbonChainLength
-  	temp = (Compound.new("CC(C)CCCC(CC)C",""))
   	compoundGraph = Graph.new
-  	compoundGraph.buildGraph(temp.smile)
-  	assert_equal(10, compoundGraph.head.length)
-  	assert_equal(compoundGraph.maxLength, compoundGraph.head.length)
+  	compoundGraph.buildGraph("CC(C)CCCC(CC)C")
+  	assert_equal(8, compoundGraph.maxLength)
   end
 
   def test_CompoundTranslation0

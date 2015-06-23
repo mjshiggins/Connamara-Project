@@ -253,8 +253,8 @@ class Graph
     # After use must be set to false
     @firstRun = true
     # Used to keep track of largest chain and total number of carbons
-    maxLength = 0
-    carbonCount = 0
+    @maxLength = 0
+    @carbonCount = 0
   end
 
  
@@ -268,9 +268,10 @@ class Graph
   def addVertex(parentNode = Node.new)
     temp = Node.new
     # If a standard addition
-    if parentNode != nil
+    if parentNode.locant != nil
       temp.previous = (parentNode)
-      temp.locant = (parentNode.locant + 1)
+      temp.locant = ((parentNode.locant) + 1)
+      #puts temp.locant
       # Max test
       if temp.locant > @maxLength
         @maxLength = temp.locant
@@ -295,6 +296,28 @@ class Graph
   # Post: Directed Graph with all child nodes located in node.next, node.branches has not yet been populated
   ##################################################
   def buildGraph(smile)
+    branchArr = []
+    iterator = nil
+
+      # Loop until end of string, uses a simulated stack to store branches in order and number
+      smile.split("").each do |i|
+        case i
+        # If branch is found "(", push branch return pointer and continue
+          when "("
+            branchArr.push(iterator)
+        # If end of branch is found ")", return to "popped" branch return pointer
+          when ")"
+            iterator = branchArr.pop
+        # If simply another carbon, just add the new vertex to the parent node, increment and assign node value
+          when "C"
+            if iterator != nil
+              temp = addVertex(iterator)
+            else
+              temp = addVertex
+            end
+            iterator = temp
+        end
+      end
   end
 
   ##################################################
@@ -361,7 +384,7 @@ class Compound
   def translate()
     compoundGraph = Graph.new
     compoundGraph.buildGraph(@smile)
-    iupac = compoundGraph.buildString(compoundGraph.getHead())
+    #iupac = compoundGraph.buildString(compoundGraph.head)
   end
 
 
