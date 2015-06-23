@@ -266,7 +266,15 @@ class Graph
       return @head
     end
 
-
+    # Cleans main carbon chain after findLength
+    def backTrack(head, tail)
+      while(tail.previous != head)
+        #tail.rebuild
+        (tail.previous).next[0] = tail
+        (tail.previous).node = ((tail.node)-1)
+        tail = tail.previous
+      end
+    end
 
     # Rebuilds all nodes in graph
     def rebuildAll
@@ -295,7 +303,6 @@ class Graph
             @tail = @iterator
           end
 
-          # While flag
           while branchFlag
             returnNode = branchArr.pop
             # If branch return array isnt empty
@@ -317,20 +324,20 @@ class Graph
               end
             elsif returnNode == nil
               # Set tail and renumber main carbon line
-              @tail = @iterator
               baseCount = maxVal
               if tailBool
+                @tail = @iterator
+                backTrack(@head, @tail)
                 return @tail
               else
                 return maxVal
               end
-              branchFlag = false
             end
           end
           branchFlag = true
 
         # If multiple pointers to children are found
-        elsif ( @iterator.next.length > 1 || @iterator.explore.length > 0)
+        elsif ( (@iterator.next.length > 1) || (@iterator.explore.length > 0))
           # Push node to the branch return array
           branchArr.push(@iterator)
           # Check for a populated explore stack on node, first run
@@ -341,7 +348,7 @@ class Graph
             @iterator.rebuild()
           end
           # Check for a populated explore2 stack on node, subsequent runs
-          if (@iterator.explore2.length == 0)
+          if ((@iterator.explore2.length == 0) && (@iterator.explore.length > 0))
             # If explore stack empty, populate explore and explore2 with all branches
             @iterator.explore.each {|x| @iterator.explore2.push(x)}
             @iterator.rebuild()
@@ -356,12 +363,11 @@ class Graph
           @iterator = iterator.next[0]
           counter += 1
           @iterator.node = counter
-
         end
       end
     end
 
-    # Checks for branches
+    # Checks for branches, breaks and returns as soon as substitutent is found in carbon chain
     def branchCheck(head, tail)
       while(tail != head)
         if(tail.explore.length > 0)
@@ -372,10 +378,12 @@ class Graph
       return false
     end
 
+
     # Renumbers all branches (recursively) with correct locants, enables dynamic programming
     def renumber(head)
       # Find length from head, assigning proper locants
       head.carbonLen = findLength(head, false)
+      head.branches = branchCheck(head, findLength(head, true))
 
       # Find branches, recursively call renumber() on each branch
       while(head != nil)
@@ -426,28 +434,57 @@ class Graph
       end
       
       # Determine correct numbering scheme for compound, populates number values, carbonLen, and branches
+      puts findLength(@head, true)
       puts findLength(@head, false)
       # Assign head, tail and rebuild all nodes
       renumber(@head)
       # Check for renumbering
         # Reverse main chain numbers
         # Rebuild nodes if renumbering was required (potentially not necessary)
+
+      # Build final string
+      #buildString(@head)
     end
 
     # Recursively called in order to build IUPAC string
     # Returns fully concatenated build string
     def buildString(vertex)
       # Initializations
+      carbonHash = {}
       base = ""
-      @iterator = vertex
-      length = @iterator.carbonLen
+      length = vertex.carbonLen
 
       # Prime loop with base structure by checking first run and then flipping bool (firstRun)
-      if (@iterator.explore.length > 0)
-        @iterator.explore.each {|x| @iterator.explore2.push(x)}
+      if @firstRun
+        @firstRun = false
+        base.concat(prefixBuilder(vertex.carbonLen, false))
       end
 
-      # Find length
+        while vertex.next[0] != nil
+          # If carbon has branches
+          if vertex.explore.length > 0
+            # For every branch
+            for index in 0 ... vertex.explore.length
+              # If the branch has a branch, recursively call this function
+              if ((vertex.explore[index]).branches)
+                carbonHash[buildString(vertex.explore[index])] = [(vertex.explore[index]).node]
+              # Otherwise, create a hash using the prefix
+              else
+                carbonHash[prefixBuilder(vertex.explore[index].carbonLen, true)] = [(vertex.explore[index]).node]
+              end
+            end
+          # No branches
+          else
+            carbonHash[prefixBuilder(vertex.carbonLen, true)] = [vertex.node]
+          end
+        vertex = vertex.next[0]
+        end
+
+
+
+      # Concatenate Final String
+      #carbonHash.each_key {|key| puts key }
+
     end
 
     
