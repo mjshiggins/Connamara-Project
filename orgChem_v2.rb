@@ -214,17 +214,18 @@ class Node
     tempArr = []
     while (@next.length > 1)
       temp = @next.pop
-      if (temp.node == 1)
-        @ebranches.push(temp)
+      if (temp.locant == 1)
+        @branchArray.push(temp)
       else
-        @next.push(temp)
+        tempArr.push(temp)
       end
     end
+    @next.push(tempArr.pop)
     # Clean main carbon chains from branch array
-    while (@explore.length > 1)
-      temp = @explore.pop
-      if (temp.node == 1)
-        explore.push(temp)
+    while (@branchArray.length > 1)
+      temp = @branchArray.pop
+      if (temp.locant == 1)
+        @branchArray.push(temp)
       end
     end
   end
@@ -259,7 +260,7 @@ class Graph
 
   ##################################################
   # Name: findTail
-  # Functionality:  Returns tail of longest carbon chain from vertex
+  # Functionality:  Returns tail of longest carbon chain from vertex and puts correct locant in tail
   # Pre: Only usable when all child nodes are still copied in exploreArray
   #       
   # Post: Should only be used immediately prior to renumbering branches
@@ -271,6 +272,8 @@ class Graph
     tail = nil
     iterator = vertex
     branchArr = []
+
+    # Prime exploreArray by copying next into exploreArray
 
     # Search
     while iterator != nil
@@ -362,26 +365,32 @@ class Graph
   # Functionality:  Finds longest chain, renumbers all locants, tests for branches and sets bool for head
   #                 Rebuilds node child branches, runs refactorGraph recursively on each child branch, populates length
   # Pre: DAG w/all children in node.next, head vertex is part of longest chain due to SMILES formulation
-  #      To run properly, call with @head and @tail
+  #      To run properly, call with @head in buildGraph
   # Post: Fully numbered and rebuilt nodes, graph is complete
   ##################################################
-  def refactorGraph(head, tail)
+  def refactorGraph(head)
     # Initializations
     branchFlag = false
-    iterator = tail
+    iterator = findTail(head)
 
     # Move backwards from tail to head while: 
-    while iterator != head
+    while (iterator != head && iterator != nil)
       # Checking for branches
       if iterator.next.size > 1
         branchFlag = true
+        for index in 0 ... iterator.next.length
+          # Rebuilding child branch directories
+          iterator.next[index].rebuild
+        end
+        # Recursively calling refactorGraph on each child branch
+        for index in 0 ... iterator.branchArray.length
+          refactorGraph(iterator.branchArray[index])
+        end
       end
+
       # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
-      iterator.previous.locant = (iterator.locant - 1) 
-      # Rebuilding child branch directories (not yet possible, unless they are already renumbered.....)
-      #iterator.rebuild
-      # Populating length
-      # Recursively calling refactorGraph on each child branch
+      #iterator.previous.locant = (iterator.locant - 1) 
+      
       # Decrementing the iterator
       iterator = iterator.previous      
     end
@@ -431,7 +440,7 @@ class Graph
       end
 
       # Refactor and Reverse (if needed)
-      refactorGraph(@head, @tail)
+      refactorGraph(@head)
       reverseGraph()
   end
 
@@ -447,12 +456,52 @@ class Graph
   end
 
   ##################################################
-  # Name: 
-  # Functionality:
-  # Pre:
-  # Post:
+  # Name: buildString
+  # Functionality: Recursively called in order to build IUPAC string
+  # Pre: Fully processed DAG
+  # Post: Returns fully concatenated build string
   ##################################################
-  def buildString()
+  def buildString(vertex)
+      # Initializations
+      base = ""
+      iterator = vertex
+      length = findTail(iterator)
+      if length != nil
+        length = length.locant
+      end
+      carbonHash = {}
+
+      # Prime loop with base structure by checking first run and then flipping bool (firstRun)
+      if @firstRun
+        @firstRun = false
+        base.concat(prefixBuilder(length, false))
+      end
+
+        while iterator.next[0] != nil
+          # If carbon has branches
+          if iterator.branchArray.length > 0
+            # For every branch
+            for index in 0 ... iterator.branchArray.length
+              # If the branch has a branch, recursively call this function
+              if ((iterator.branchArray[index]).branches)
+                carbonHash[buildString(iterator.branchArray[index])] = [(iterator.branchArray[index]).locant]
+              # Otherwise, create a hash using the prefix
+              else
+                carbonHash[prefixBuilder(findTail(iterator.branchArray[index]).locant, true)] = [(iterator.branchArray[index]).locant]
+              end
+            end
+          # No branches
+          else
+            carbonHash[prefixBuilder(length, true)] = [iterator.locant]
+          end
+        iterator = iterator.next[0]
+        end
+
+
+
+      # Concatenate Final String
+      carbonHash.each_key {|key| puts key }
+
   end
 
 
@@ -483,7 +532,7 @@ class Compound
   def translate()
     compoundGraph = Graph.new
     compoundGraph.buildGraph(@smile)
-    #iupac = compoundGraph.buildString(compoundGraph.head)
+    iupac = compoundGraph.buildString(compoundGraph.head)
   end
 
 

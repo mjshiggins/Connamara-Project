@@ -20,10 +20,11 @@ class TestCompound < Test::Unit::TestCase
   	assert_equal(8, compoundGraph.maxLength)
   end
 
-    def test_findTail
+  def test_findTail
   	compoundGraph = Graph.new
   	compoundGraph.buildGraph("CC(C)CCCC(CC)C")
-  	assert_equal(8, (compoundGraph.findTail(compoundGraph.head)).locant)
+  	#assert_equal(compoundGraph.tail, compoundGraph.findTail(compoundGraph.head))
+  	assert_equal(8, compoundGraph.tail.locant)
   end
 
   def test_CompoundTranslation0
