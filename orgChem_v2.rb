@@ -230,19 +230,15 @@ class Node
   # Post: 
   ##################################################
   def clearCopy()
-    # Erase and Prime exploreArray by copying next and branchArray into exploreArray
+    # Erase and Prime exploreArray by copying next into exploreArray
     while @exploreArray.size > 0
       @exploreArray.pop
     end
-    # Next Array
-    for index in 0 ... @next.length
-      @exploreArray.push(@next[index])
-    end
+
     # Branch Array
-    for index in 0 ... @branchArray.length
-      @exploreArray.push(branchArray[index])
-    end
-    # Delete duplicates
+    @next.each do |index|
+      @exploreArray.push(index)
+      end
   end
 
 end
@@ -274,10 +270,9 @@ class Graph
 
   ##################################################
   # Name: findTail
-  # Functionality:  Returns tail of longest carbon chain from vertex and puts correct locant in tail
-  # Pre: Only usable when all child nodes are still copied in exploreArray
-  #       
-  # Post: Should only be used immediately prior to renumbering branches
+  # Functionality:  Returns tail of longest carbon chain from vertex
+  # Pre: Branches are only present in vertex.next
+  # Post: 
   ################################################## 
   def findTail(vertex)
     # Initializations
@@ -287,9 +282,8 @@ class Graph
     iterator = vertex
     branchArr = []
 
-    # Prime exploreArray
+    # Prime iterator
     iterator.clearCopy
-    
 
     # Search
     while iterator != nil
@@ -299,7 +293,7 @@ class Graph
         branchArr.push(iterator)
         # Pop from exploreArray and increment iterator, do a max test, set tail
         iterator = iterator.exploreArray.pop
-        # Prime exploreArray
+        # Prime iterator
         iterator.clearCopy
         counter += 1
         iterator.locant = counter
@@ -312,7 +306,7 @@ class Graph
       # One child
       elsif (iterator.exploreArray.size == 1)
         iterator = iterator.exploreArray.pop
-        # Prime exploreArray
+        # Prime iterator
         iterator.clearCopy
         counter += 1
         iterator.locant = counter
@@ -339,7 +333,6 @@ class Graph
               tail = iterator
             end
           end
-
         # No more branches, return tail
         else
           return tail
@@ -386,38 +379,54 @@ class Graph
   # Functionality:  Finds longest chain, renumbers all locants, tests for branches and sets bool for head
   #                 Rebuilds node child branches, runs refactorGraph recursively on each child branch, populates length
   # Pre: DAG w/all children in node.next, head vertex is part of longest chain due to SMILES formulation
-  #      To run properly, call with @head in buildGraph
-  # Post: Fully numbered and rebuilt nodes, graph is complete
+  #      To run properly, call with @head and @tail in buildGraph
+  # Post: Fully numbered and rebuilt nodes
   ##################################################
-  def refactorGraph(head)
+  def refactorGraph(head, tail)
     # Initializations
     branchFlag = false
-    iterator = findTail(head)
+    iterator = tail
+    # Test
+    if head == nil || tail == nil
+      return nil
+    end
 
+    # Set node max branch length
+    head.length = tail.locant
+    
     # Move backwards from tail to head while: 
-    while (iterator != head && iterator != nil)
-      # Checking for branches
-      if iterator.next.size > 1
-        branchFlag = true
-        for index in 0 ... ((iterator.next.length)-1)
-          # Rebuilding child branch directories
-          iterator.next[index].rebuild
+      while (iterator != head )
+        # Checking for branches
+        if iterator.previous.next.size > 1
+          branchFlag = true
+          # Recursively calling refactorGraph on each child branch
+          #iterator.previous.next.each {|x| refactorGraph(x , findTail(x)) }
         end
-        # Recursively calling refactorGraph on each child branch
-        for index in 0 ... ((iterator.branchArray.length)-1)
-          refactorGraph(iterator.branchArray[index])
-        end
+        # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
+        iterator.previous.locant = (iterator.locant - 1) 
+        # Decrementing the iterator
+        iterator = iterator.previous      
       end
 
-      # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
-      iterator.previous.locant = (iterator.locant - 1) 
-      
-      # Decrementing the iterator
-      iterator = iterator.previous      
-    end
     # Set branches for dynamic programming later (Does this node have any branches on its main carbon chain?)
     head.branches = branchFlag
 
+    branchFlag = false
+    iterator = tail
+    
+    # Move backwards from tail to head while: 
+      while (iterator != head )
+              # Rebuilding child branch directories
+          iterator.previous.next.each do |x| 
+            if x != iterator
+              iterator.previous.branchArray.push(x)
+              iterator.previous.next.delete(x)
+            end
+          end
+
+        # Decrementing the iterator
+        iterator = iterator.previous 
+      end
 
   end
 
@@ -461,7 +470,7 @@ class Graph
       end
 
       # Refactor and Reverse (if needed)
-      refactorGraph(@head)
+      refactorGraph(@head,@tail)
       reverseGraph()
   end
 
@@ -486,46 +495,18 @@ class Graph
       # Initializations
       base = ""
       iterator = vertex
-      length = findTail(iterator)
-      if length != nil
-        length = length.locant
-      end
+      #length = findTail(iterator).locant
       carbonHash = {}
 
       # Prime loop with base structure by checking first run and then flipping bool (firstRun)
       if @firstRun
         @firstRun = false
-        base.concat(prefixBuilder(length, false))
+        #base.concat(prefixBuilder(length, false))
       end
 
 
-        while iterator.next[0] != nil
-          #puts iterator.next[0].locant
-          # If carbon has branches
-          if iterator.branchArray.length > 0
-            # For every branch
-            for index in 0 ... ((iterator.branchArray.length))
-              # If the branch has a branch, recursively call this function
-              puts index
-              if ((iterator.branchArray[index]).branches)
-                carbonHash[buildString(iterator.branchArray[index])] = [(iterator.branchArray[index]).locant]
-              # Otherwise, create a hash using the prefix
-              else
-                puts prefixBuilder((findTail(iterator.branchArray[index]).locant, true)))
-                carbonHash[prefixBuilder((findTail(iterator.branchArray[index])).locant, true)] = [(iterator.branchArray[index]).locant]
-              end
-            end
-          # No branches
-          else
-            carbonHash[prefixBuilder(length, true)] = [iterator.locant]
-          end
-        iterator = iterator.next[0]
-        end
-
-
-
       # Concatenate Final String
-      carbonHash.each_key {|key| puts key }
+      #carbonHash.each_key {|key| puts key }
 
       return base
 

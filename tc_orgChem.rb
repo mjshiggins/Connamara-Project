@@ -23,7 +23,8 @@ class TestCompound < Test::Unit::TestCase
   def test_findTail
   	compoundGraph = Graph.new
   	compoundGraph.buildGraph("CC(C)CCCC(CC)C")
-  	#assert_equal(compoundGraph.tail, compoundGraph.findTail(compoundGraph.head))
+  	compoundGraph.refactorGraph(compoundGraph.head, compoundGraph.tail)
+  	assert_equal(compoundGraph.tail.locant, compoundGraph.findTail(compoundGraph.head).locant)
   	assert_equal(8, compoundGraph.tail.locant)
   end
 
