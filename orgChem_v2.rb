@@ -395,38 +395,32 @@ class Graph
     head.length = tail.locant
     
     # Move backwards from tail to head while: 
-      while (iterator != head )
+      while (iterator != nil )
         # Checking for branches
-        if iterator.previous.next.size > 1
+        if iterator.previous != nil && iterator.previous.next.size > 1
           branchFlag = true
-          # Recursively calling refactorGraph on each child branch
-          #iterator.previous.next.each {|x| refactorGraph(x , findTail(x)) }
-        end
-        # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
-        iterator.previous.locant = (iterator.locant - 1) 
-        # Decrementing the iterator
-        iterator = iterator.previous      
-      end
-
-    # Set branches for dynamic programming later (Does this node have any branches on its main carbon chain?)
-    head.branches = branchFlag
-
-    branchFlag = false
-    iterator = tail
-    
-    # Move backwards from tail to head while: 
-      while (iterator != head )
-              # Rebuilding child branch directories
+          # Rebuilding child branch directories
           iterator.previous.next.each do |x| 
             if x != iterator
               iterator.previous.branchArray.push(x)
               iterator.previous.next.delete(x)
             end
           end
-
+          # Recursively calling refactorGraph on each child branch
+          iterator.previous.branchArray.each {|x| refactorGraph(x , findTail(x))}
+        end
+        # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
+        if iterator.previous != nil && iterator != head
+          iterator.previous.locant = (iterator.locant - 1) 
+        end
+        
+        puts iterator.locant
         # Decrementing the iterator
-        iterator = iterator.previous 
+        iterator = iterator.previous      
       end
+
+    # Set branches for dynamic programming later (Does this node have any branches on its main carbon chain?)
+    head.branches = branchFlag
 
   end
 
@@ -494,19 +488,44 @@ class Graph
   def buildString(vertex)
       # Initializations
       base = ""
+      temp = ""
       iterator = vertex
-      #length = findTail(iterator).locant
-      carbonHash = {}
+      length = head.length
+      #length = (findTail(iterator)).locant
+      hash = Hash.new
+      stringArr = []
+      counter = 0
 
       # Prime loop with base structure by checking first run and then flipping bool (firstRun)
       if @firstRun
         @firstRun = false
-        #base.concat(prefixBuilder(length, false))
+        base.concat(prefixBuilder(length, false))
+      end
+
+
+      while iterator.next[0] != nil
+        #puts iterator.locant
+        if iterator.branchArray.size > 0
+          iterator.branchArray.each do |x|
+            puts "Branch: #{x.locant}"
+            if x.branches
+              stringArr.push("#{iterator.locant}-(#{buildString(x)})")
+            elsif findTail(x) != nil
+              stringArr.push("#{iterator.locant}-#{prefixBuilder((findTail(x)).locant,true)}")
+            end
+          end
+        else
+          #hash[prefixBuilder()]
+        end
+        iterator = iterator.next[0]
+        counter += 1
       end
 
 
       # Concatenate Final String
-      #carbonHash.each_key {|key| puts key }
+      #hash.each_key {|key| puts key.concat(base) }
+      stringArr.each {|x| puts x}
+
 
       return base
 
