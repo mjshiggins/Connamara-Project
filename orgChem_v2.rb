@@ -401,9 +401,9 @@ class Graph
           end
           # Recursively call on each child
           iterator.previous.branchArray.each do |x|
-            tInt = findTail(x)
-            refactorGraph(x,tInt)
-            x.length = tInt.locant
+            tailTemp = findTail(x)
+            puts refactorGraph(x,tailTemp)
+            x.length = tailTemp.locant
           end
         end
         # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
@@ -511,9 +511,10 @@ class Graph
           iterator.branchArray.each do |x|
             puts "Branch: #{x.previous.locant}"
             if x.branches
-              stringArr.push("#{iterator.locant}-(#{buildString(x)})")
+              z = buildString(x)
+              stringArr.push("#{iterator.locant}-(#{z}#{prefixBuilder(x.length,true)})")
             else
-              puts x.length
+              #puts x.length
               stringArr.push("#{iterator.locant}-#{prefixBuilder(x.length,true)}-")
             end
           end
