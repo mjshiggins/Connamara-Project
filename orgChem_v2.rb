@@ -225,7 +225,7 @@ class Node
 
   ##################################################
   # Name: clearCopy
-  # Functionality: Clears exploreArray, copies in child array
+  # Functionality: Clears exploreArray, copies in next and branchArray
   # Pre:
   # Post: 
   ##################################################
@@ -237,6 +237,9 @@ class Node
 
     # Branch Array
     @next.each do |index|
+      @exploreArray.push(index)
+      end
+    @branchArray.each do |index|
       @exploreArray.push(index)
       end
   end
@@ -271,18 +274,19 @@ class Graph
   ##################################################
   # Name: findTail
   # Functionality:  Returns tail of longest carbon chain from vertex
-  # Pre: Branches are only present in vertex.next
-  # Post: 
+  # Pre: Branch pointers exist in next and branchArray, no duplicates
+  # Post: Returns pointer to end of longest carbon chain, next and branchArr populated correctly, fixes locants
   ################################################## 
   def findTail(vertex)
     # Initializations
     counter = 1
     max = 0
-    tail = nil
+    tail = vertex
     iterator = vertex
     branchArr = []
 
     # Prime iterator
+    iterator.locant = counter
     iterator.clearCopy
 
     # Search
@@ -301,6 +305,7 @@ class Graph
         if counter > max
           max = counter
           tail = iterator
+          vertex.length = counter
         end
 
       # One child
@@ -313,6 +318,7 @@ class Graph
         if counter > max
           max = counter
           tail = iterator
+          vertex.length = counter
         end
       
       # No child
@@ -323,18 +329,8 @@ class Graph
           iterator = branchArr.pop
           # Reset counter
           counter = iterator.locant
-          # Check exploreArray
-          if iterator.exploreArray.size > 0
-            iterator = iterator.exploreArray.pop
-            counter += 1
-            iterator.locant = counter
-            if counter > max
-              max = counter
-              tail = iterator
-            end
-          end
         # No more branches, return tail
-        else
+        elsif iterator.exploreArray.size == 0
           return tail
         end
       end 
@@ -361,8 +357,6 @@ class Graph
         @tail = temp
       end
       parentNode.next.push(temp)
-      # Populate secondary search array
-      parentNode.exploreArray.push(temp)
     # If first node being added to graph
     elsif parentNode.locant == nil
       @head = temp      
@@ -373,6 +367,8 @@ class Graph
     @carbonCount += 1
     return temp
   end
+
+
 
   ##################################################
   # Name: refactorGraph
@@ -390,12 +386,9 @@ class Graph
     if head == nil || tail == nil
       return nil
     end
-
-    # Set node max branch length
-    head.length = tail.locant
     
     # Move backwards from tail to head while: 
-      while (iterator != nil )
+      while (iterator != nil && iterator != head)
         # Checking for branches
         if iterator.previous != nil && iterator.previous.next.size > 1
           branchFlag = true
@@ -406,26 +399,36 @@ class Graph
               iterator.previous.next.delete(x)
             end
           end
-          # Recursively calling refactorGraph on each child branch
-          iterator.previous.branchArray.each {|x| refactorGraph(x , findTail(x))}
+          # Recursively call on each child
+          iterator.previous.branchArray.each do |x|
+            tInt = findTail(x)
+            refactorGraph(x,tInt)
+            x.length = tInt.locant
+          end
         end
         # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
         if iterator.previous != nil && iterator != head
-          iterator.previous.locant = (iterator.locant - 1) 
+          if iterator.previous.locant != (iterator.locant - 1) 
+            puts "error in locant numbering"
+          end
         end
         
-        puts iterator.locant
         # Decrementing the iterator
         iterator = iterator.previous      
       end
 
     # Set branches for dynamic programming later (Does this node have any branches on its main carbon chain?)
-    head.branches = branchFlag
+    iterator = head
+    iterator.branches = branchFlag
+    # Set node max branch length
+    iterator.length = tail.locant
+
+    return iterator.length
 
   end
 
   ##################################################
-  # Name: 
+  # Name: reverseGraph
   # Functionality:
   # Pre:
   # Post:
@@ -466,6 +469,7 @@ class Graph
       # Refactor and Reverse (if needed)
       refactorGraph(@head,@tail)
       reverseGraph()
+
   end
 
 
@@ -491,7 +495,6 @@ class Graph
       temp = ""
       iterator = vertex
       length = head.length
-      #length = (findTail(iterator)).locant
       hash = Hash.new
       stringArr = []
       counter = 0
@@ -504,14 +507,14 @@ class Graph
 
 
       while iterator.next[0] != nil
-        #puts iterator.locant
         if iterator.branchArray.size > 0
           iterator.branchArray.each do |x|
-            puts "Branch: #{x.locant}"
+            puts "Branch: #{x.previous.locant}"
             if x.branches
               stringArr.push("#{iterator.locant}-(#{buildString(x)})")
-            elsif findTail(x) != nil
-              stringArr.push("#{iterator.locant}-#{prefixBuilder((findTail(x)).locant,true)}")
+            else
+              puts x.length
+              stringArr.push("#{iterator.locant}-#{prefixBuilder(x.length,true)}-")
             end
           end
         else
@@ -523,11 +526,12 @@ class Graph
 
 
       # Concatenate Final String
-      #hash.each_key {|key| puts key.concat(base) }
-      stringArr.each {|x| puts x}
+      stringArr.each do |x|
+        temp.concat(x)
+      end
 
 
-      return base
+      return temp.concat(base)
 
   end
 
