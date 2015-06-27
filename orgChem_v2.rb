@@ -7,7 +7,7 @@
 #### Functionality: Translates straight chained and branched alkanes from SMILES to IUPAC nomenclature
 #### Alkanes: Substances consisting entirely of single-bonded carbon and hydrogen atoms and lacking functional groups
 #### Branched Alkanes: Derived from the straight-chain alkanes system by removing one of the hydrogen atoms from a methylene group
-#### Use: Run via command line using --> ruby orgChem.rb "compound"
+#### Use: Run via command line using --> ruby orgChem.rb "CCC"
 ##################################################
 
 
@@ -204,24 +204,6 @@ class Node
     @exploreArray= []
   end
 
-  ##################################################
-  # Name: rebuild
-  # Functionality: Separates the next node (main carbon chain) from the other branches, moves others to branch array
-  # Pre: Requires all node.locant values to be numbered in graph correctly before use (this is done with a refactor, addVertex is not sufficient)
-  # Post: Correct child nodes with branch and main carbon chain categories
-  ##################################################
-  def rebuild()
-    tempArr = []
-    while (@next.length > 1)
-      temp = @next.pop
-      if (temp.locant == 1)
-        @branchArray.push(temp)
-      else
-        tempArr.push(temp)
-      end
-    end
-    @next.push(tempArr.pop)
-  end
 
   ##################################################
   # Name: clearCopy
@@ -246,12 +228,14 @@ class Node
 
 end
 
+
+
 ##################################################
 #### Class: Graph
 #### Description: Directed Graph for representing the structure of compounds
 ##################################################
 class Graph
-  attr_accessor :head, :tail, :iterator, :return, :iupac, :firstRun, :maxLength, :carbonCount
+  attr_accessor :head, :tail, :iterator, :return, :iupac, :firstRun, :maxLength, :carbonCount, :reverse
 
   def initialize()
     # "Pointer" nils
@@ -269,6 +253,7 @@ class Graph
     # Used to keep track of largest chain and total number of carbons
     @maxLength = 0
     @carbonCount = 0
+    @reverse = false
   end
 
   ##################################################
@@ -402,7 +387,7 @@ class Graph
           # Recursively call on each child
           iterator.previous.branchArray.each do |x|
             tailTemp = findTail(x)
-            puts refactorGraph(x,tailTemp)
+            #puts refactorGraph(x,tailTemp)
             x.length = tailTemp.locant
           end
         end
@@ -429,11 +414,48 @@ class Graph
 
   ##################################################
   # Name: reverseGraph
-  # Functionality:
-  # Pre:
-  # Post:
+  # Functionality: Checks to see which side the main carbon chain should be numbered from
+  # Pre: next only has a single node
+  # Post: Returns true if reversal required, false otherwise
   ##################################################
-  def reverseGraph()
+  def reverseGraph(head, tail)
+    c1 = 0
+    c2 = 0
+    iH = head
+    iT = tail
+
+    if (iH == iT || iT.previous == iH)
+      return false
+    end
+
+    while(iH.branchArray.size == 0)
+      c1 += 1
+      iH = iH.next[0]
+    end
+    while (iT.previous != nil && iT.previous.branchArray.size == 0)
+      c2 += 1
+      iT = iT.previous
+    end
+
+    # Current numbering is correct
+    if c1 < c2
+      return false
+
+    # Curent numbering s incorrect
+    elsif c2 < c1
+      return true
+
+    # Edge cases
+    elsif c1 == c2
+      if (iH == iT || iT.previous == iH)
+        return false
+
+      else
+        #return reverseGraph(iH.next[0], iT.previous)
+        return false
+      end
+        
+    end
   end
 
   ##################################################
@@ -468,20 +490,18 @@ class Graph
 
       # Refactor and Reverse (if needed)
       refactorGraph(@head,@tail)
-      reverseGraph()
+
+      if reverseGraph(@head, @tail)
+        iterator = @head
+        while iterator.next[0] != nil
+          # Flip locant
+          iterator.locant = (maxLength - iterator.locant + 1)
+          iterator = iterator.next[0]
+        end
+      end
 
   end
 
-
-
-  ##################################################
-  # Name: 
-  # Functionality:
-  # Pre:
-  # Post:
-  ##################################################
-  def drawGraph()
-  end
 
   ##################################################
   # Name: buildString
@@ -496,7 +516,6 @@ class Graph
       iterator = vertex
       length = head.length
       hash = Hash.new
-      stringArr = []
       counter = 0
 
       # Prime loop with base structure by checking first run and then flipping bool (firstRun)
@@ -509,13 +528,25 @@ class Graph
       while iterator.next[0] != nil
         if iterator.branchArray.size > 0
           iterator.branchArray.each do |x|
-            puts "Branch: #{x.previous.locant}"
             if x.branches
               z = buildString(x)
-              stringArr.push("#{iterator.locant}-(#{z}#{prefixBuilder(x.length,true)})")
+              y = "#{z}#{prefixBuilder(x.length,true)}"
+
+              if hash[y] == nil
+                hash[y] = []
+              end
+              
+              hash[y].push(iterator.locant)
+
             else
-              #puts x.length
-              stringArr.push("#{iterator.locant}-#{prefixBuilder(x.length,true)}-")
+              y = "#{prefixBuilder(x.length,true)}"
+
+              if hash[y] == nil
+                hash[y] = []
+              end
+
+              hash[y].push(iterator.locant)
+
             end
           end
         else
@@ -526,11 +557,52 @@ class Graph
       end
 
 
-      # Concatenate Final String
-      stringArr.each do |x|
-        temp.concat(x)
+
+      sorted = hash.sort_by {|k,v| k}
+      temp = ""
+
+      sorted.each do |x|        
+        # Add locants for first group
+        x[1].sort!
+        x[1].each do |y|
+          temp.concat(y.to_s)
+          temp.concat(",")
+        end
+
+        # Remove last comma
+        temp.chomp!(",")
+
+        # Add dash
+        temp.concat("-")
+
+        # Add numerical prefix for number of identical branches
+        case x[1].size
+        when 2
+          temp.concat("di")
+        when 3
+          temp.concat("tri")
+        when 4
+          temp.concat("tetra")
+        when 5
+          temp.concat("penta")
+        when 6
+          temp.concat("hexa")
+        when 7
+          temp.concat("hepta")
+        when 8
+          temp.concat("octa")
+        when 9
+          temp.concat("nona")
+        when 10
+          temp.concat("deca")
+        end
+
+        # Add regular prefix
+        temp.concat("#{x[0]}-")
       end
 
+      # Cut off last dash
+      temp.chomp!("-")
 
       return temp.concat(base)
 
@@ -556,6 +628,27 @@ class Compound
 
 
   ##################################################
+  # Name: cleaner
+  # Functionality:  Removes all "vowel" based naming issues
+  #                 Examples: aa (decaane), ia (triaconta), heni/hene, icosa (drop 'i' when proceeded by vowel)
+  #                 General Rule: Drop second vowel
+  # Pre:  Requires populated iupac member, translate must be run
+  # Post: Correctly formatted string
+  ##################################################
+  def cleaner()
+    # tr doesn't do what I'd like it to do here
+    iupac.tr!("aa", 'a')
+    iupac.tr!('ia', 'i')
+    iupac.tr!('ai', 'a')
+    iupac.tr!('ei', 'e')
+    iupac.tr!('ii', 'i')
+    iupac.tr!('oi', 'o')
+    iupac.tr!('ui', 'u')
+    iupac.tr!(',-', '-')
+    iupac.tr!('--', '-')
+  end
+
+  ##################################################
   # Name: translate
   # Functionality: Converts member smile to correct iupac format in respective data locations
   # Pre:
@@ -565,20 +658,10 @@ class Compound
     compoundGraph = Graph.new
     compoundGraph.buildGraph(@smile)
     iupac.concat(compoundGraph.buildString(compoundGraph.head))
-  end
-
-
-  ##################################################
-  # Name: cleaner
-  # Functionality:  Removes all "vowel" based naming issues
-  #                 Examples: aa (decaane), ia (triaconta), heni/hene, icosa (drop 'i' when proceeded by vowel)
-  #                 General Rule: Drop second vowel
-  # Pre:  Requires populated iupac member, translate must be run
-  # Post: Correctly formatted string
-  ##################################################
-  def cleaner()
 
   end
+
+
 
   ##################################################
   # Name: print

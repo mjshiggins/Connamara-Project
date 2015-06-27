@@ -29,19 +29,27 @@ class TestCompound < Test::Unit::TestCase
   end
 
   def test_CompoundTranslation0
-  	assert_equal("methane", (Compound.new("C","" )).iupac)
+  	c = (Compound.new("C","" ))
+  	c.translate
+  	assert_equal("methane", c.iupac)
   end
 
   def test_CompoundTranslation1
-  	assert_equal("2-methylbutane", (Compound.new("CC(C)CC","" )).iupac)
+  	c = (Compound.new("CC(C)CC","" ))
+  	c.translate
+  	assert_equal("2-methylbutane", c.iupac)
   end
 
   def test_CompoundTranslation2
-  	assert_equal("2,5-dimethyloctane",(Compound.new("CC(C)CCC(CCC)C","" )).iupac)
+  	c = (Compound.new("CC(C)CCC(CCC)C","" ))
+  	c.translate
+  	assert_equal("2,5-dimethyloctane", c.iupac)
   end
  
   def test_CompoundTranslation3
-  	assert_equal("6-(1,1-dimethylethyl)-7-ethyl-3,5-dimethylundecane",(Compound.new("CCCCC(CC)C(C(C)CC(C)CC)C(C)(C)C","" )).iupac)
+  	c = (Compound.new("CCC(C)C(C)(CC)CC","" ))
+  	c.translate
+  	assert_equal("3-ethyl-3,4-dimethylhexane", c.iupac)
   end
 
 end
