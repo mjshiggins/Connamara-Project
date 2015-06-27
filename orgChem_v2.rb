@@ -404,6 +404,7 @@ class Graph
           iterator.previous.branchArray.each do |x|
             tailTemp = findTail(x)
             x.length = tailTemp.locant
+            refactorGraph(x,tailTemp)
           end
         end
         # Renumbering locants check (useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
@@ -538,12 +539,13 @@ class Graph
 
 
       while iterator.next[0] != nil
+
         if iterator.branchArray.size > 0
           iterator.branchArray.each do |x|
             # If the branch itself has branches (sub-branch problem)
             if x.branches
               z = buildString(x)
-              y = "#{z}#{prefixBuilder(x.length,true)}"
+              y = "(#{z}#{prefixBuilder(x.length,true)})"
             # If it's just a standard branch
             else
               y = "#{prefixBuilder(x.length,true)}"
@@ -556,7 +558,6 @@ class Graph
               
             # Push locant to hash
             hash[y].push(iterator.locant)
-
           end
         end
 
@@ -566,7 +567,7 @@ class Graph
       end
 
 
-
+      # Begin sorted string building
       sorted = hash.sort_by {|k,v| k}
       temp = ""
 
@@ -610,14 +611,12 @@ class Graph
         temp.concat("#{x[0]}-")
       end
 
-      # Cut off last dash
+      # Remove last dash
       temp.chomp!("-")
 
       return temp.concat(base)
 
   end
-
-
 end
 
 

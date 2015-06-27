@@ -52,4 +52,10 @@ class TestCompound < Test::Unit::TestCase
   	assert_equal("3-ethyl-3,4-dimethylhexane", c.iupac)
   end
 
+  def test_CompoundTranslation4
+  	c = (Compound.new("CCC(C)CC(C)C(C(C)(CC)C)C(CC)CCCC","" ))
+  	c.translate
+  	assert_equal("6-(1,1-dimethylpropyl)-7-ethyl-3,5-dimethylundecane", c.iupac)
+  end
+
 end
