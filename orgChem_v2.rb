@@ -139,13 +139,25 @@ def prefixBuilder(carbonVal, branched)
       temp.concat("meth")
     end
 
+  # Case 11 (Which for some reason is completely different. Yay organic chemistry)
+  elsif carbonVal == 11
+    temp.concat("undec")
 
   # Begin standard prefixing procedure by parsing each digit of the carbon count
   elsif carbonVal >= 10 
     while x > 0  do
       y = (x % 10)
       x = (x / 10)
-      temp.concat(prefixer(y, counter))
+      t = prefixer(y, counter)
+
+      # Check for multiple vowel issues
+      if ( t[1] == 'a' || t[1] == 'e' || t[1] == 'i' || t[1] == 'o' || t[1] == 'u' )
+        if ( temp[-1] == 'a' || temp[-1] == 'e' || temp[-1] == 'i' || temp[-1] == 'o' || temp[-1] == 'u' )
+          # Remove last character
+          temp.chop!
+        end
+      end
+      temp.concat()
       counter = counter + 1
     end
   end
@@ -153,6 +165,10 @@ def prefixBuilder(carbonVal, branched)
   # Set final suffix for alkane or branch
   # Denpends on CnH2n+2 (ane) for alkanes or CnH2n+1 (yl) alkyl groups
   if !branched
+    if ( temp[-1] == 'a' || temp[-1] == 'e' || temp[-1] == 'i' || temp[-1] == 'o' || temp[-1] == 'u' )
+      # Remove last character
+      temp.chop!
+    end
     temp.concat("ane")
   else
     temp.concat("yl")
@@ -404,7 +420,10 @@ class Graph
 
     # Set branches for dynamic programming later (Does this node have any branches on its main carbon chain?)
     iterator = head
-    iterator.branches = branchFlag
+    if branchFlag
+      iterator.branches = true
+    end
+    
     # Set node max branch length
     iterator.length = tail.locant
 
@@ -447,13 +466,7 @@ class Graph
 
     # Edge cases
     elsif c1 == c2
-      if (iH == iT || iT.previous == iH)
-        return false
-
-      else
-        #return reverseGraph(iH.next[0], iT.previous)
-        return false
-      end
+      return false
         
     end
   end
