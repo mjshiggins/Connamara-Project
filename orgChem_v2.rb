@@ -636,27 +636,6 @@ class Compound
 
 
   ##################################################
-  # Name: cleaner
-  # Functionality:  Removes all "vowel" based naming issues
-  #                 Examples: aa (decaane), ia (triaconta), heni/hene, icosa (drop 'i' when proceeded by vowel)
-  #                 General Rule: Drop second vowel
-  # Pre:  Requires populated iupac member, translate must be run
-  # Post: Correctly formatted string
-  ##################################################
-  def cleaner()
-    # tr doesn't do what I'd like it to do here
-    iupac.tr!("aa", 'a')
-    iupac.tr!('ia', 'i')
-    iupac.tr!('ai', 'a')
-    iupac.tr!('ei', 'e')
-    iupac.tr!('ii', 'i')
-    iupac.tr!('oi', 'o')
-    iupac.tr!('ui', 'u')
-    iupac.tr!(',-', '-')
-    iupac.tr!('--', '-')
-  end
-
-  ##################################################
   # Name: translate
   # Functionality: Converts member smile to correct iupac format in respective data locations
   # Pre:
