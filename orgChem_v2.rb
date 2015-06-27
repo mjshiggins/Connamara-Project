@@ -7,7 +7,7 @@
 #### Functionality: Translates straight chained and branched alkanes from SMILES to IUPAC nomenclature
 #### Alkanes: Substances consisting entirely of single-bonded carbon and hydrogen atoms and lacking functional groups
 #### Branched Alkanes: Derived from the straight-chain alkanes system by removing one of the hydrogen atoms from a methylene group
-#### Use: Run via command line using --> ruby orgChem.rb "CCC"
+#### Use: Run via command line using --> ruby orgChem_v2.rb "CCC"
 ##################################################
 
 
@@ -403,14 +403,13 @@ class Graph
           # Recursively call on each child
           iterator.previous.branchArray.each do |x|
             tailTemp = findTail(x)
-            #puts refactorGraph(x,tailTemp)
             x.length = tailTemp.locant
           end
         end
-        # Renumbering locants(useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
+        # Renumbering locants check (useless on first round of recursion, but fixes DP done on branch nodes for finding the longest chain)
         if iterator.previous != nil && iterator != head
           if iterator.previous.locant != (iterator.locant - 1) 
-            puts "error in locant numbering"
+            puts "Error in locant numbering"
           end
         end
         
@@ -460,11 +459,11 @@ class Graph
     if c1 < c2
       return false
 
-    # Curent numbering s incorrect
+    # Curent numbering is incorrect
     elsif c2 < c1
       return true
 
-    # Edge cases
+    # Equal
     elsif c1 == c2
       return false
         
@@ -541,30 +540,27 @@ class Graph
       while iterator.next[0] != nil
         if iterator.branchArray.size > 0
           iterator.branchArray.each do |x|
+            # If the branch itself has branches (sub-branch problem)
             if x.branches
               z = buildString(x)
               y = "#{z}#{prefixBuilder(x.length,true)}"
-
-              if hash[y] == nil
-                hash[y] = []
-              end
-              
-              hash[y].push(iterator.locant)
-
+            # If it's just a standard branch
             else
               y = "#{prefixBuilder(x.length,true)}"
-
-              if hash[y] == nil
-                hash[y] = []
-              end
-
-              hash[y].push(iterator.locant)
-
             end
+
+            # Create hash if necessary
+            if hash[y] == nil
+              hash[y] = []
+            end
+              
+            # Push locant to hash
+            hash[y].push(iterator.locant)
+
           end
-        else
-          #hash[prefixBuilder()]
         end
+
+        # Increment iterator
         iterator = iterator.next[0]
         counter += 1
       end
