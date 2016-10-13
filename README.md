@@ -1,5 +1,5 @@
 # Connamara-Project
-Organic Chemistry translation program. Written in Ruby for Connamara Interview Process.
+Organic Chemistry translation program.
 
 - Accept as input: the name of a compound in Simplified Molecular-Input Line-Entry System (SMILES) format
 - Then, give as output: the name of that compound in IUPAC Nomenclature
