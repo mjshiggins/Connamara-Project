@@ -1,4 +1,4 @@
-Organic Chemistry Translation: SMILES -> IUPAC
+#Organic Chemistry Translation: SMILES -> IUPAC
 
 As a self-driving car and drone/UAV/military software engineer and team lead, it might seem a little strange that I'm submitting a piece of code that solves an organic chemistry problem, especially one written in Ruby. This code was written as an interview assignment, meant to test my ability to learn something I had zero experience with, in a language I had never used. I intend for this to show a clean piece of code with a creative solution, written to specification. If I can produce code this well in an advanced college-level biology domain, you can be sure that I will write incredible code on your team within my expertise. All of the drone and military work I've done is closed source; however, my self-driving car work will soon be extremely public through Udacity. 
 
