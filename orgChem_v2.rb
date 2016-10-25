@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 ##################################################
-#### Connamara "Homework"
 #### MacCallister Higgins
 #### mac@nevada.unr.edu
 #### Functionality: Translates straight chained and branched alkanes from SMILES to IUPAC nomenclature
